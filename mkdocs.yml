@@ -1,0 +1,39 @@
+site_name: Kalindu's Homelab Docs
+site_url: https://kdecosta.com/
+site_author: kalindudc
+
+copyright: Copyright &copy; 2023 Kalindu De Costa, All rights reserved
+
+repo_url: https://github.com/kalindudc/homelab
+edit_uri: edit/main/docs/
+
+nav:
+  - Home: index.md
+  - About: about.md
+theme:
+  name: terminal
+  features:
+    - revision.date
+    - revision.history
+
+plugins:
+  - search
+  - git-revision-date
+  - macros
+
+markdown_extensions:
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - meta
+  - toc:
+      permalink: "#"
+      permalink_title: Anchor link to this section for reference
+
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.snippets:
+      base_path:
+        - docs

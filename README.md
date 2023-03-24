@@ -1,2 +1,1 @@
-# homelab
-Docs for the homelav
+docs/index.md
