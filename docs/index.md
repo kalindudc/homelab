@@ -36,6 +36,12 @@ This repository contains the a collection of documentation and the architecture 
 
 ## Demos and Screenshots
 
+![rack hardware for 2022/03/24](./img/rack/rack_20220324.jpeg)
+
+![omada dashboad](./img/network/omada_dashboard.png)
+
+![dashy](./img/services/dashy.png)
+
 ## License
 
 Distributed under the [MIT License](https://github.com/kalindudc/homelab/blob/main/LICENSE), go nuts.
