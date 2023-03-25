@@ -3,7 +3,10 @@
 
 Bell Canada provides an all in one proprietary hardware solution for home networking. This is quite limited for my overall goals for this project. Using my own networking hardware allows to easily switch ISPs and without having to lockin to a single ISP. Using my own hardware also allow for better security and resiliency with better community support. For the purposes of this guide, I have the `HomeHub 4000` and all instructions are for working with the `HomeHub 4000`.
 
-## Option 1: Advanced DMZ (this is broken and does not work anymore)
+## Option 1: Advanced DMZ
+
+!!! failure "Update 2023/02/02"
+    This does not work for me anymore. A firmware update to the HH4000 somehow blacklisted my router. Enabling `Advanced DMZ` for the router now results in an invalid public ip for the router, and breaks the internet connection to the HH4000 as well.
 
 #### Turn ON DMZ
 1. Connect router to one of the LAN port (or the 10G port)
@@ -28,9 +31,8 @@ Bell Canada provides an all in one proprietary hardware solution for home networ
 
 The router should now receive a valid IP and internet. If not, try the above steps again.
 
-Things to note, in the event of a power failure, you may have to repeat the above steps for the router to receive a valid public IP. I would first try with the `Calibration Steps` first to see if the router can acquire a valid public IP.
-
-Update: This does not work for me anymore.
+!!! note
+    In the event of a power failure, you may have to repeat the above steps for the router to receive a valid public IP. I would first try with the `Calibration Steps` first to see if the router can acquire a valid public IP.
 
 ## Option 2: PPPoE Passthrough
 
@@ -46,7 +48,7 @@ Update: This does not work for me anymore.
 2. Go to `My Services > Internet` and record the userID (it should start with `b1`)
 3. Under `Settings`, select `Change modem access password` and create a new access password
 
-![pppoe credentials](../img/network/mybell_modem_access.png)
+![pppoe credentials](../img/network/mybell_modem_access.jpg)
 
 #### Configure your router
 
@@ -62,4 +64,4 @@ I currently use a TPLink ER7206 as my router and I will be using this as an exam
 8. Enable `Internet VLAN` and use **35** as the tagged value
 9. Restart the router!!!
 
-![tplink er7206 pppoe settings](../img/network/tplink_er7206_pppoe_settings.png)
+![tplink er7206 pppoe settings](../img/network/tplink_er7206_pppoe_settings.jpg)

@@ -36,11 +36,11 @@ This repository contains the a collection of documentation and the architecture 
 
 ## Demos and Screenshots
 
-![rack hardware for 2022/03/24](./img/rack/rack_20220324.jpeg)
+![rack hardware for 2022/03/24](./img/rack/20230324/rack_20230324.jpg)
 
-![omada dashboad](./img/network/omada_dashboard.png)
+![omada dashboad](./img/network/omada_dashboard.jpg)
 
-![dashy](./img/services/dashy.png)
+![dashy](./img/services/dashy.jpg)
 
 ## License
 

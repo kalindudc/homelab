@@ -1,0 +1,12 @@
+::selection {
+  transition: background-color 0.5s ease;
+  background-color: #2bd2d2;
+}
+
+.timeline-accent {
+  color: white;
+  background: #55B5B5;
+  padding: 5px 15px 5px 15px;
+  border-radius:5px;
+  font-weight:bold;
+}

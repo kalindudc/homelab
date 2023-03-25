@@ -9,7 +9,10 @@ edit_uri: edit/main/docs/
 
 nav:
   - Home: index.md
-  - The Lab: lab.md
+  - The Lab:
+    - lab/index.md
+    - Updates:
+      - lab/updates/update_20230324.md
   - Network:
     - network/index.md
     - network/vlans.md
@@ -23,36 +26,47 @@ nav:
     - automation/ansible.md
     - automation/terraform.md
 
+extra_css:
+  - css/extra.css
+
 theme:
   name: material
+  custom_dir: overrides
   palette:
     # Palette toggle for light mode
-    - scheme: default
+    - media: "(prefers-color-scheme: dark)"
+      scheme: default
       primary: white
+      accent: teal
       toggle:
-        icon: material/brightness-7
+        icon: material/weather-sunny
         name: Switch to dark mode
 
     # Palette toggle for dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: light)"
+      scheme: slate
       primary: black
-      accent: orange
+      accent: teal
       toggle:
-        icon: material/brightness-4
+        icon: material/weather-night
         name: Switch to light mode
   features:
-    - navigation.instant
     - navigation.indexes
     - navigation.sections
     - search.highlight
     - search.share
+    - toc.follow
+    - navigation.top
+    - navigation.tracking
 
 plugins:
   - search
   - git-revision-date
   - macros
+  - tags
 
 markdown_extensions:
+  - abbr
   - attr_list
   - def_list
   - footnotes
@@ -61,10 +75,17 @@ markdown_extensions:
   - toc:
       permalink: "#"
       permalink_title: Anchor link to this section for reference
-
+  - admonition
+  - pymdownx.details
   - pymdownx.caret
   - pymdownx.mark
   - pymdownx.tilde
   - pymdownx.snippets:
+      check_paths: true
       base_path:
         - docs
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
