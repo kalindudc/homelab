@@ -36,11 +36,11 @@ This repository contains the a collection of documentation and the architecture 
 
 ## Demos and Screenshots
 
-![rack hardware for 2022/03/24](./img/rack/20230324/rack_20230324.jpg)
+![rack hardware for 2022/03/24](https://raw.githubusercontent.com/kalindudc/homelab/main/docs/img/rack/20230324/rack_20230324.jpg)
 
-![omada dashboad](./img/network/omada_dashboard.jpg)
+![omada dashboad](https://raw.githubusercontent.com/kalindudc/homelab/main/docs/img/network/omada_dashboard.jpg)
 
-![dashy](./img/services/dashy.jpg)
+![dashy](https://raw.githubusercontent.com/kalindudc/homelab/main/docs/img/services/dashy.jpg)
 
 ## License
 
