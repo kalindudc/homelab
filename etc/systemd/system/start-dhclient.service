@@ -1,0 +1,8 @@
+[Unit]
+Description=start-dhclient.sh script
+
+[Service]
+ExecStart=/startup/scripts/start-dhclient.sh
+
+[Install]
+WantedBy=multi-user.target
