@@ -15,16 +15,9 @@ nav:
       - lab/updates/update_20230324.md
   - Network:
     - network/index.md
-    - network/vlans.md
     - network/bypass_bell_homehub.md
-  - Services:
-    - services/index.md
-    - services/proxmox.md
-    - services/kubernetes.md
-  - Automation:
-    - automation/index.md
-    - automation/ansible.md
-    - automation/terraform.md
+  # - Services: []
+  # - Automation: []
 
 extra_css:
   - css/extra.css
