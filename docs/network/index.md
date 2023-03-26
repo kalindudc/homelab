@@ -24,7 +24,7 @@ I live in Canada, so my choices of ISPs are very limited. There is Bell, Rogers,
 
 ## The gear
 
-![rack hardware for 2022/03/24 labeled network section](../../img/rack/20230324/rack_20230324_labeled_network.jpg)
+![rack hardware for 2022/03/24 labeled network section](../img/rack/20230324/rack_20230324_labeled_network.jpg)
 
 I decided very early on to stick to a single ecosystem for my networking gear, primarily for the ease of use and integration and for the community support. There were a few options here, Ubiquity (r/homelabs favourite), `Omada`, Cisco, Aruba ... My homelab journey started in late 2021, well into the global supply chain issues and getting anything Ubiquity was nearly impossible. Cisco and Aruba had a great community behind it but was too expensive for a home setup and that left TPLink `Omada`, somewhat underrated and so far has worked really well for this project.
 
@@ -36,7 +36,7 @@ To finish off this section, I have a TL-SG2218, a 16 port switch [F] and another
 
 ## Network topology
 
-![network topology diagram](../../img/network/20230324/network_topology.jpg)
+![network topology diagram](../img/network/20230324/network_topology.jpg)
 
 There are 4 distinct VLANs in use within in my network. `IoT` VLAN for grouping all IoT devices, these include smart home devices, media devices, appliances, etc. `Work`, groups together all personal devices in the home like desktop computers, laptops, phones. This is also the primary VLAN for the the home WiFi. `Access`, is reserved for devices that require acccess to everything on the network, like DNS service, monitoring and log aggregation services. Finally, the `servers` VLAN groups together all devices that act as servers in the lab like the SBC array, USFF array and the NAS server.
 
