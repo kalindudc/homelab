@@ -1,5 +1,4 @@
 resource "proxmox_vm_qemu" "russel_terrier" {
-
   target_node = "terrier"
   vmid = "203"
   name = "russel.terrier"
@@ -26,9 +25,9 @@ resource "proxmox_vm_qemu" "russel_terrier" {
     storage = "local-lvm"
     type = "virtio"
     size = "20G"
-    backup  = true
+    backup  = 0
     discard = "on"
-    iothread = 1
+    iothread = 0
   }
 
   lifecycle {

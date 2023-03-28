@@ -28,9 +28,9 @@ resource "proxmox_vm_qemu" "border_collie" {
     storage = "local-lvm"
     type = "virtio"
     size = "20G"
-    backup  = true
+    backup  = 0
     discard = "on"
-    iothread = 1
+    iothread = 0
   }
 
   lifecycle {
