@@ -22,14 +22,6 @@ def main():
   if 'node_name' not in vars:
     vars['node_name'] = input('Enter node name to deploy: ')
 
-  # check for pve_cfg_path variable
-  if 'pve_cfg_path' not in vars:
-    vars['pve_cfg_path'] = input('Enter path to pve config file: ')
-
-  # check fo http_directory variable
-  if 'http_directory' not in vars:
-    vars['http_directory'] = input('Enter path to http directory: ')
-
   # check for vm_id variable
   if 'vm_id' not in vars:
     vars['vm_id'] = input('Enter vm id: ')

@@ -19,15 +19,6 @@ variable "vm_id" {
   type = string
 }
 
-variable "http_directory" {
-  type = string
-}
-
-variable "pve_cfg_path" {
-  type = string
-}
-
-
 source "proxmox" "ubuntu-server-jammy-local" {
 
   proxmox_url = "${var.proxmox_api_url}"
@@ -81,7 +72,7 @@ source "proxmox" "ubuntu-server-jammy-local" {
   boot = "c"
   boot_wait = "5s"
 
-  http_directory = "${var.http_directory}"
+  http_directory = "http"
 
   ssh_username = "kalindu"
   ssh_private_key_file = "~/.ssh/id_rsa"
@@ -109,7 +100,7 @@ build {
   }
 
   provisioner "file" {
-    source = "${var.pve_cfg_path}"
+    source = "files/99-pve.cfg"
     destination = "/tmp/99-pve.cfg"
   }
 
