@@ -1,7 +1,7 @@
-resource "proxmox_vm_qemu" "staffy_terrier" {
-  target_node = "terrier"
-  vmid = "202"
-  name = "staffy.terrier"
+resource "proxmox_vm_qemu" "russel_terrier" {
+  target_node = "shepherd"
+  vmid = "203"
+  name = "standard.shepherd"
   desc = "This cloned vm from ${local.vm_template_ubuntu_jammy}"
 
   onboot = true
@@ -39,11 +39,10 @@ resource "proxmox_vm_qemu" "staffy_terrier" {
 
   os_type = "cloud-init"
 
-  ipconfig0 = "ip=192.168.101.2/22,gw=192.168.100.1"
+  ipconfig0 = "ip=192.168.101.3/22,gw=192.168.100.1"
 
   ciuser = "administrator"
   cipassword = "${var.proxmox_vm_default_password}"
 
   sshkeys = "${local.ssh_key}"
-
 }

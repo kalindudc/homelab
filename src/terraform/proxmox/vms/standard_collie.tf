@@ -2,7 +2,7 @@ resource "proxmox_vm_qemu" "border_collie" {
 
   target_node = "collie"
   vmid = "201"
-  name = "border.collie"
+  name = "standard.collie"
   desc = "This cloned vm from ${local.vm_template_ubuntu_jammy}"
 
   boot = "order=net0;virtio0;ide0"
