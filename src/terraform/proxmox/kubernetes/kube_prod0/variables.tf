@@ -14,3 +14,22 @@ variable "ssh_key" {
 variable "kube_token" {
   type = string
 }
+
+variable "lb_ip" {
+  type = string
+}
+
+variable "hosts" {
+  type = object({
+    servers = list(object({
+      name = string
+      ip = string
+      target_node = string
+    }))
+    workers = list(object({
+      name = string
+      ip = string
+      target_node = string
+    }))
+  })
+}

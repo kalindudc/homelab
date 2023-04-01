@@ -10,3 +10,11 @@ variable "ansible_playbooks_location" {
 variable "ssh_key" {
   type = string
 }
+
+variable "hosts" {
+  type = list(object({
+    name = string
+    ip = string
+    target_node = string
+  }))
+}

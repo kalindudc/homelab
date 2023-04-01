@@ -1,14 +1,12 @@
-locals {
-  ip_prefix = 0
-}
+resource "proxmox_vm_qemu" "kube-worker-node" {
+  depends_on = [proxmox_vm_qemu.kube-server-head]
 
-resource "proxmox_vm_qemu" "lb-vm" {
-  for_each = {for i, vm in var.hosts: i => vm}
+  for_each = {for i, vm in var.hosts.workers: i => vm}
 
   target_node = each.value.target_node
-  vmid = "20${each.key + 1}"
-  name = "${each.value.name}.server.${each.value.target_node}"
-  desc = "This is a vm for a load balancer"
+  vmid = "50${each.key + 1}"
+  name = "${each.value.name}.worker.${each.value.target_node}"
+  desc = "This is a worker node for kube server"
 
   boot = "order=net0;virtio0;ide0"
 
@@ -55,7 +53,7 @@ resource "proxmox_vm_qemu" "lb-vm" {
   sshkeys = "${var.ssh_key}"
 
   connection {
-    host = "${each.value.ip}"
+    host = each.value.ip
     user = "administrator"
     private_key = file("~/.ssh/id_rsa")
     agent = false
@@ -74,9 +72,7 @@ resource "proxmox_vm_qemu" "lb-vm" {
     command =  "echo 'Sleep for 60 seconds...' && sleep 60 && echo 'Done sleeping...'"
   }
 
-  provisioner "local-exec" {
-    working_dir = var.ansible_playbooks_location
-    command = "ansible-playbook -u administrator --key-file ~/.ssh/id_rsa -i ${each.value.ip}, deploy-nginx.yaml"
+  provisioner "remote-exec" {
+    inline = ["curl -sfL https://get.k3s.io | sh -s - agent --token=${var.kube_token} --server https://${var.lb_ip}:6443"]
   }
-
 }
