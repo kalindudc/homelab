@@ -133,7 +133,7 @@ resource "proxmox_vm_qemu" "kube-server-node" {
   sshkeys = "${var.ssh_key}"
 
   connection {
-    host = "${each.value.ip}}"
+    host = each.value.ip
     user = "administrator"
     private_key = file("~/.ssh/id_rsa")
     agent = false

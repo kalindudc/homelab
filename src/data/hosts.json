@@ -30,6 +30,21 @@
         "name": "kube-worker-01",
         "ip": "10.0.21.1",
         "target_node": "terrier"
+      },
+      {
+        "name": "kube-worker-02",
+        "ip": "10.0.21.2",
+        "target_node": "shepherd"
+      },
+      {
+        "name": "kube-worker-03",
+        "ip": "10.0.21.3",
+        "target_node": "terrier"
+      },
+      {
+        "name": "kube-worker-04",
+        "ip": "10.0.21.4",
+        "target_node": "shepherd"
       }
     ]
   }
