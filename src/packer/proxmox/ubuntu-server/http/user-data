@@ -23,7 +23,7 @@ autoinstall:
     timezone: America/Toronto
     users:
       - name: kalindu
-        groups: [adm, sudo]
+        groups: [adm, sudo, docker]
         lock-passwd: false
         sudo: ALL=(ALL) NOPASSWD:ALL
         shell: /bin/bash

@@ -6,3 +6,7 @@ variable "ansible_playbooks_location" {
   type = string
   default = "../../../ansible/playbooks"
 }
+
+variable "ssh_key" {
+  type = string
+}

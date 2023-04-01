@@ -1,0 +1,42 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+  - name: "update and upgrade"
+    become: yes
+    ignore_errors: yes
+    failed_when: "'FAILED' in command_result.stderr"
+    apt:
+      upgrade: yes
+      update_cache: yes
+      cache_valid_time: 3600
+
+  - name: Copy nginx src
+    become: yes
+    copy:
+      src: ../../nginx
+      dest: /
+      owner: administrator
+      group: administrator
+      mode: 0644
+      force: yes
+
+  - name: Build the nginx image
+    docker_image:
+      build:
+        path: /nginx
+      name: lab_nginx_build:v2
+      source: build
+      force_source: yes
+
+  - name: deploy nginx docker container
+    docker_container:
+      image: lab_nginx_build:v2
+      name: nginx
+      state: started
+      auto_remove: no
+      ports:
+        - "6443:6443"
+        - "443:443"
+      recreate: yes
+      restart_policy: always

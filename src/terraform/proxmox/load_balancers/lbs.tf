@@ -1,5 +1,5 @@
 locals {
-  ip_prefix = 100
+  ip_prefix = 0
   vms = [
     {
       name = "lb-01"
@@ -53,15 +53,15 @@ resource "proxmox_vm_qemu" "lb-vm" {
 
   os_type = "cloud-init"
 
-  ipconfig0 = "ip=192.168.100.${local.ip_prefix + each.key + 1}/22,gw=192.168.100.1"
+  ipconfig0 = "ip=10.0.10.${local.ip_prefix + each.key + 1}/16,gw=10.0.0.1"
 
   ciuser = "administrator"
   cipassword = "${var.proxmox_vm_default_password}"
 
-  sshkeys = "${local.ssh_key}"
+  sshkeys = "${var.ssh_key}"
 
   connection {
-    host = "192.168.100.${local.ip_prefix + each.key + 1}"
+    host = "10.0.10.${local.ip_prefix + each.key + 1}"
     user = "administrator"
     private_key = file("~/.ssh/id_rsa")
     agent = false
@@ -69,7 +69,11 @@ resource "proxmox_vm_qemu" "lb-vm" {
   }
 
   provisioner "remote-exec" {
-    inline = [ "echo 'Redy to go...'"]
+    inline = ["while [ ! -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting for cloud-init...'; sleep 5; done"]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["echo ${var.proxmox_vm_default_password} | sudo usermod -aG docker $USER"]
   }
 
   provisioner "local-exec" {
@@ -78,7 +82,7 @@ resource "proxmox_vm_qemu" "lb-vm" {
 
   provisioner "local-exec" {
     working_dir = var.ansible_playbooks_location
-    command = "ansible-playbook -u administrator --key-file ~/.ssh/id_rsa -i 192.168.100.${local.ip_prefix + each.key + 1}, provision-nginx.yaml"
+    command = "ansible-playbook -u administrator --key-file ~/.ssh/id_rsa -i 10.0.10.${local.ip_prefix + each.key + 1}, deploy-nginx.yaml"
   }
 
 }
