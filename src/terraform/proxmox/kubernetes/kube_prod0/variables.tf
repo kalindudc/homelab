@@ -20,9 +20,16 @@ variable "lb_ip" {
 }
 
 variable "hosts" {
-  type = list(object({
-    name = string
-    ip = string
-    target_node = string
-  }))
+  type = object({
+    servers = list(object({
+      name = string
+      ip = string
+      target_node = string
+    }))
+    workers = list(object({
+      name = string
+      ip = string
+      target_node = string
+    }))
+  })
 }

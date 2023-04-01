@@ -1,12 +1,12 @@
 locals {
-  ip_prefix = 1
+  hosts = var.hosts.servers
 }
 
 resource "proxmox_vm_qemu" "kube-server-head" {
 
-  target_node = "${var.hosts[0].target_node}"
+  target_node = "${local.hosts[0].target_node}"
   vmid = "401"
-  name = "${var.hosts[0].name}.server.collie"
+  name = "${local.hosts[0].name}.server.collie"
   desc = "This is a server node for kube api server"
 
   boot = "order=net0;virtio0;ide0"
@@ -46,7 +46,7 @@ resource "proxmox_vm_qemu" "kube-server-head" {
 
   os_type = "cloud-init"
 
-  ipconfig0 = "ip=${var.hosts[0].ip}/16,gw=10.0.0.1"
+  ipconfig0 = "ip=${local.hosts[0].ip}/16,gw=10.0.0.1"
 
   ciuser = "administrator"
   cipassword = "${var.proxmox_vm_default_password}"
@@ -54,7 +54,7 @@ resource "proxmox_vm_qemu" "kube-server-head" {
   sshkeys = "${var.ssh_key}"
 
   connection {
-    host = "${var.hosts[0].ip}"
+    host = "${local.hosts[0].ip}"
     user = "administrator"
     private_key = file("~/.ssh/id_rsa")
     agent = false
@@ -81,10 +81,10 @@ resource "proxmox_vm_qemu" "kube-server-head" {
 resource "proxmox_vm_qemu" "kube-server-node" {
   depends_on = [proxmox_vm_qemu.kube-server-head]
 
-  for_each = {for i, vm in slice(var.hosts, 1, length(var.hosts)): i => vm}
+  for_each = {for i, vm in slice(local.hosts, 1, length(local.hosts)): i => vm}
 
   target_node = each.value.target_node
-  vmid = "40${each.key + 1 + local.ip_prefix}"
+  vmid = "40${each.key + 2}"
   name = "${each.value.name}.server.${each.value.target_node}"
   desc = "This is a server node for kube api server"
 
@@ -153,6 +153,6 @@ resource "proxmox_vm_qemu" "kube-server-node" {
   }
 
   provisioner "remote-exec" {
-    inline = ["curl -sfL https://get.k3s.io | sh -s - server --token=${var.kube_token} --tls-san kube.homelab --tls-san ${var.lb_ip} --server https://${var.hosts[0].ip}:6443"]
+    inline = ["curl -sfL https://get.k3s.io | sh -s - server --token=${var.kube_token} --tls-san kube.homelab --tls-san ${var.lb_ip} --server https://${local.hosts[0].ip}:6443"]
   }
 }
