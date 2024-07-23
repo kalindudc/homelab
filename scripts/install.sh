@@ -13,7 +13,3 @@ sudo apt-get --dist upgrade
 sudo apt-get install python3
 sudo apt-get install golang-go
 sudo apt-get install terraform
-sudo apt install packer
-
-
-scripts/install-base.sh

@@ -1,0 +1,26 @@
+---
+version: "3"
+
+vars:
+  KUBERNETES_DIR: "{{.ROOT_DIR}}/src/kubernetes"
+  ANSIBLE_DIR: "{{.ROOT_DIR}}/src/ansible"
+  TERRAFORM_DIR: "{{.ROOT_DIR}}/src/terraform"
+
+dotenv: [".env"]
+
+env:
+  KUBECONFIG: "~/.kube/homelab.config"
+
+tasks:
+
+  init:
+    desc: Initialize mac workstation dependencies
+    cmds:
+      - scripts/install-base.sh
+      - scripts/install-mac.sh
+
+  init-linux:
+    desc: Initialize linux workstation dependencies
+    cmds:
+      - scripts/install-base.sh
+      - scripts/install.sh
