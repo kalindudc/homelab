@@ -1,5 +1,10 @@
 #! /bin/bash
 
+#### OUTADATED ####
+###################
+#
+# TODO: Update this script to use the same commands as install-mac.sh
+
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
     https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
     sudo tee /etc/apt/sources.list.d/hashicorp.list
@@ -16,4 +21,4 @@ sudo apt-get install terraform
 sudo apt install packer
 
 
-scripts/install-base.sh
+./install-base.sh

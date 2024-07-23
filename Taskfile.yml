@@ -1,0 +1,39 @@
+---
+version: "3"
+
+vars:
+  KUBERNETES_DIR: "{{.ROOT_DIR}}/src/kubernetes"
+  ANSIBLE_DIR: "{{.ROOT_DIR}}/src/ansible"
+  TERRAFORM_DIR: "{{.ROOT_DIR}}/src/terraform"
+
+dotenv: [".ops.env"]
+
+env:
+  KUBECONFIG: "~/.kube/homelab.config"
+
+tasks:
+
+  init:
+    desc: Initialize workstation dependencies with Brew
+    cmds:
+      - scripts/install-mac.sh
+
+  pre-commit-init:
+    desc: Initialize pre-commit hooks
+    cmds:
+      - pre-commit install --install-hooks
+
+  pre-commit-run:
+    desc: Run pre-commit
+    cmds:
+      - pre-commit run --all-files
+
+  pre-commit-update:
+    desc: Update pre-commit hooks
+    cmds:
+      - pre-commit autoupdate
+
+  configure:
+    desc: Configure operations
+    cmds:
+      - scripts/configure.sh
