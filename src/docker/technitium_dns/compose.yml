@@ -1,0 +1,21 @@
+name: technitium
+services:
+  dns-server:
+    cpu_shares: 50
+    container_name: dns-server
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    hostname: dns-server
+    image: technitium/dns-server:latest
+    network_mode: "host"
+    restart: unless-stopped
+    volumes:
+      - config:/etc/dns
+    environment:
+      - DNS_SERVER_DOMAIN=dns.lan
+      - DNS_SERVER_ADMIN_PASSWORD_FILE=/etc/technitium/admin-password
+
+volumes:
+    config:
