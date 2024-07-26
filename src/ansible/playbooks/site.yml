@@ -1,0 +1,27 @@
+---
+- name: Install rsync on local servers
+  hosts: servers
+  become: yes
+  vars_files:
+    - vault.yml
+  pre_tasks:
+    - include_vars:
+        file: vault.yml
+  tasks:
+    - name: Install rsync package
+      apt:
+        name: rsync
+        state: present
+
+    - name: Install rsync package
+      apt:
+        name: rsync
+        state: present
+      register: install_result
+
+    - name: Report installation result
+      debug:
+        msg: "Rsync installation result: {{ install_result }}"
+
+- name: Synchronize homelab/ to local servers blah
+  import_playbook: sync_homelab.yml

@@ -61,3 +61,60 @@ packer_cache/
 plan
 
 tmp/*
+
+# SSH keys and configuration
+*.pem
+*.pub
+*.key
+*.ssh/
+ssh_config
+
+# Secrets and sensitive data
+*.secret
+*.env
+*.password
+
+# Environment-specific files
+*.local
+*.env
+
+# Temporary files
+*.log
+*.pid
+*.swp
+*.swo
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyd
+
+# Ansible runtime
+*.retry
+*.log
+
+# VSCode settings
+.vscode/
+
+# IDE-specific files
+.idea/
+
+# Ansible collection cache
+.ansible_collections/
+
+# Generated files
+*.yml~ # Backup files
+*.bak  # Backup files
+
+# Gitignore for roles and playbooks
+roles/*/tasks/*.yml~
+roles/*/handlers/*.yml~
+roles/*/vars/*.yml~
+roles/*/defaults/*.yml~
+roles/*/meta/*.yml~
+
+# Local configuration files
+local_settings.yml
+config_local.yml
