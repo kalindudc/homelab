@@ -17,6 +17,7 @@ OMADA_BASE_URL = "https://#{OMADA_CONTROLLER_IP}:#{OMADA_CONTROLLER_PORT}"
 TECHNITIUM_DNS_IP = "192.168.50.100"
 TECHNITUM_DNS_PORT = "5380"
 TECHNITIUM_ADD_RECORDS_URL = "http://#{TECHNITIUM_DNS_IP}:#{TECHNITUM_DNS_PORT}/api/zones/records/add"
+TECHNITIUM_DELETE_DNS_CACHE_URL = "http://#{TECHNITIUM_DNS_IP}:#{TECHNITUM_DNS_PORT}/api/cache/delete"
 
 DEFAULT_ZONE = "home.arpa"
 LAB_ZONE = "lab.home.arpa"
@@ -64,9 +65,35 @@ def main
     exit 1
   end
   logger.info("DNS records updated successfully.")
+
+  err = clear_dns_cache(logger, technitium_token)
+  if err
+    logger.error("Failed to clear DNS cache: #{err}.")
+    exit 1
+  end
+  logger.info("DNS cache cleared successfully.")
 end
 
 private
+
+def clear_dns_cache(logger, technitium_token)
+  unsuccessful_zones = []
+
+  zones = [DEFAULT_ZONE, LAB_ZONE]
+  zones.each do |zone|
+    url = URI.parse("#{TECHNITIUM_DELETE_DNS_CACHE_URL}?token=#{technitium_token}&domain=#{zone}")
+    http = Net::HTTP.new(url.host, url.port)
+
+    request = Net::HTTP::Get.new(url)
+    response = http.request(request)
+    response_data = JSON.parse(response.body)
+
+    if response_data["status"] != "ok"
+      unsuccessful_zones << zone
+    end
+  end
+  unsuccessful_zones.empty? ? nil : "Failed to clear cache for zones: #{unsuccessful_zones.join(", ")}"
+end
 
 def update_dns_records(logger, technitium_token, omada_devices)
   unsuccessful_records = []
@@ -76,7 +103,7 @@ def update_dns_records(logger, technitium_token, omada_devices)
       domain = "#{hostname}.#{LAB_ZONE}"
     end
 
-    url = URI.parse("#{TECHNITIUM_ADD_RECORDS_URL}?token=#{technitium_token}&domain=#{domain}&type=A&ipAddress=#{ip_address}")
+    url = URI.parse("#{TECHNITIUM_ADD_RECORDS_URL}?token=#{technitium_token}&domain=#{domain}&type=A&ipAddress  =#{ip_address}")
     http = Net::HTTP.new(url.host, url.port)
 
     request = Net::HTTP::Get.new(url)
