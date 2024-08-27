@@ -1,0 +1,29 @@
+---
+- name: Synchronize hass config to hass servers
+  hosts: servers
+  vars_files:
+    - vault.yml
+  pre_tasks:
+    - include_vars:
+        file: vault.yml
+  vars:
+    local_src: "{{ lookup('ansible.builtin.env', 'HOME') }}/src/github.com/kalindudc/hass/"
+    remote_dest: "{{ ansible_env.HOME }}/test-hass/"
+  tasks:
+    - name: Synchronize files to remote server
+      synchronize:
+        src: "{{ local_src }}"
+        dest: "{{ remote_dest }}"
+        mode: push
+        recursive: yes
+        delete: no
+        rsync_opts:
+          - "--ignore-times"
+          
+      register: sync_result
+      ignore_errors: yes
+
+    - name: Handle synchronization error
+      debug:
+        msg: "Failed to synchronize files to {{ inventory_hostname }}"
+      when: sync_result.failed

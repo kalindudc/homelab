@@ -1,0 +1,26 @@
+---
+- name: Upload SSH public key
+  hosts: servers
+  become: yes
+  vars_files:
+    - vault.yml
+  pre_tasks:
+    - include_vars:
+        file: vault.yml
+  tasks:
+    - name: Ensure .ssh directory exists
+      file:
+        path: /home/{{ ansible_user }}/.ssh
+        state: directory
+        mode: '0700'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Upload SSH public key
+      copy:
+        src: "{{ lookup('ansible.builtin.env', 'HOME') }}/.ssh/id_rsa.pub"
+        dest: /home/{{ ansible_user }}/.ssh/authorized_keys
+        mode: '0600'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        backup: yes

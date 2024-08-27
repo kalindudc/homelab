@@ -135,6 +135,9 @@ def get_omada_devices(logger, omada_id, access_token, token_expiry):
     devices = result["data"]
 
     for device in devices:
+      if "name" not in device and "ip" not in device:
+        continue
+
       hostname = device["name"]
       ip_address = device["ip"]
       if hostname and ip_address:
