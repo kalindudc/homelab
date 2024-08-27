@@ -24,3 +24,8 @@ tasks:
     cmds:
       - scripts/install-base.sh
       - scripts/install.sh
+
+  sync_hass:
+    desc: Call sync_hass ansible playbook
+    cmds:
+      - ansible-playbook -i src/ansible/inventory/hass.ini src/ansible/playbooks/sync_hass.yml
