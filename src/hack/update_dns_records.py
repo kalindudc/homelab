@@ -15,6 +15,7 @@ SECRETS_FILE_PATH = os.path.join(os.path.dirname(__file__), '../../config/secret
 OMADA_CONTROLLER_IP = "192.168.0.110"
 OMADA_CONTROLLER_PORT = 443
 OMADA_BASE_URL = f"https://{OMADA_CONTROLLER_IP}:{OMADA_CONTROLLER_PORT}"
+OMADA_SITE_NAME = "Default"
 
 TECHNITIUM_DNS_IP = "192.168.50.100"
 TECHNITUM_DNS_PORT = 5380
@@ -103,9 +104,39 @@ def get_access_token(logger, omada_id, client_id, client_secret):
 def token_expired(token_expiry):
   return token_expiry is None or datetime.now() > token_expiry
 
+def get_site_id(logger, omada_id, access_token, token_expiry):
+  if token_expired(token_expiry):
+    access_token, token_expiry = get_access_token(logger, omada_id, client_id, client_secret)
+
+  headers = {"Authorization": f"AccessToken={access_token}"}
+  sites_url = f"{OMADA_BASE_URL}/openapi/v1/{omada_id}/sites?page=1&pageSize=100"
+  parsed_url = urllib.parse.urlparse(sites_url)
+  conn = http.client.HTTPSConnection(parsed_url.hostname, parsed_url.port, context=ssl._create_unverified_context())
+  conn.request("GET", parsed_url.path + "?" + parsed_url.query, headers=headers)
+  response = conn.getresponse()
+  response_data = json.loads(response.read().decode())
+
+  if response_data.get("errorCode") != 0:
+    logger.error("failed to acquire site id, response: %s", response_data)
+    return None
+
+  sites = response_data["result"]["data"]
+  for site in sites:
+    if site["name"] == OMADA_SITE_NAME:
+      logger.info("Site id acquired successfully.")
+      return site["siteId"]
+
+  return None
+
+
 def get_omada_devices(logger, omada_id, access_token, token_expiry):
   if token_expired(token_expiry):
     access_token, token_expiry = get_access_token(logger, omada_id, client_id, client_secret)
+
+  site_id = get_site_id(logger, omada_id, access_token, token_expiry)
+  if site_id is None:
+    logger.error("Failed to acquire site id.")
+    return {}
 
   headers = {"Authorization": f"AccessToken={access_token}"}
   current_page = 1
@@ -116,15 +147,18 @@ def get_omada_devices(logger, omada_id, access_token, token_expiry):
   device_info = {}
 
   while True:
-    devices_url = f"{OMADA_BASE_URL}/openapi/v1/{omada_id}/sites/Default/clients?page={current_page}&pageSize={page_size}"
+    devices_url = f"{OMADA_BASE_URL}/openapi/v1/{omada_id}/sites/{site_id}/clients?page={current_page}&pageSize={page_size}"
     parsed_url = urllib.parse.urlparse(devices_url)
     conn = http.client.HTTPSConnection(parsed_url.hostname, parsed_url.port, context=ssl._create_unverified_context())
     conn.request("GET", parsed_url.path + "?" + parsed_url.query, headers=headers)
     response = conn.getresponse()
     response_data = json.loads(response.read().decode())
 
+    print(devices_url)
+    print(headers)
+
     if response_data.get("errorCode") != 0:
-      logger.error("Failed to acquire devices.")
+      logger.error("failed to acquire devices, response: %s", response_data)
       return {}
 
     result = response_data["result"]

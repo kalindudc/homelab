@@ -29,3 +29,13 @@ tasks:
     desc: Call sync_hass ansible playbook
     cmds:
       - ansible-playbook -i src/ansible/inventory/hass.ini src/ansible/playbooks/sync_hass.yml
+
+  edit_vault:
+    desc: Edit ansible vault
+    cmds:
+      - ansible-vault edit src/ansible/playbooks/vault.yml
+
+  view_vault:
+    desc: View ansible vault
+    cmds:
+      - ansible-vault view src/ansible/playbooks/vault.yml
