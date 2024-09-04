@@ -7,7 +7,7 @@ entryPoints:
     address: ":24444"
 
 api:
-  dashboard: true
+  dashboard: false
 
 providers:
   docker:
