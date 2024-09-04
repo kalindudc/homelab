@@ -1,0 +1,29 @@
+version: "3.3"
+
+services:
+  traefik:
+    image: traefik:v2.9
+    container_name: traefik
+    restart: always
+    ports:
+      - "8080:80"
+      - "8443:443"
+      - "24444:24444"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik.yml:/traefik.yml:ro"
+      - "./routes.yml:/routes.yml:ro"
+      - "./acme.json:/acme.json"
+      - "./log:/log"
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`home.kdecosta.com`)"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
+
+networks:
+  traefik:
+    external: true

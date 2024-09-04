@@ -1,0 +1,43 @@
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+  mcsdaemon:
+    address: ":24444"
+
+api:
+  dashboard: true
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+  file:
+    filename: /routes.yml
+    watch: true
+
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: kalinduk.decosta@gmail.com
+      storage: acme.json
+      httpChallenge:
+        entryPoint: web
+
+log:
+  level: INFO
+  filePath: "/log/error.log"
+  format: json
+
+accessLog:
+  filePath: "/log/access.log"
+  format: json
+  fields:
+    defaultMode: keep
+    headers:
+      defaultMode: keep
+      names:
+        User-Agent: keep
+        Authorization: drop
+        Content-Type: keep

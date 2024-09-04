@@ -1,0 +1,42 @@
+http:
+  routers:
+    mc-files-router:
+      entryPoints:
+        - websecure
+      rule: "Host(`files.mc.kdecosta.com`)"
+      service: mc-files-service
+      tls:
+        certResolver: myresolver
+
+    game-server-panel-router:
+      entryPoints:
+        - websecure
+      rule: "Host(`game-panel.kdecosta.com`)"
+      service: game-server-panel-service
+      tls:
+        certResolver: myresolver
+
+    game-server-daemon-router:
+      entryPoints:
+        - mcsdaemon
+      rule: "Host(`game-panel.kdecosta.com`)"
+      service: game-server-daemon-service
+      tls:
+        certResolver: myresolver
+
+  services:
+    mc-files-service:
+      loadBalancer:
+        servers:
+          - url: "http://collie.lab.home.arpa:8080"
+
+    game-server-panel-service:
+      loadBalancer:
+        servers:
+          - url: "http://collie.lab.home.arpa:23335"
+
+    game-server-daemon-service:
+      loadBalancer:
+        servers:
+          - url: "http://collie.lab.home.arpa:24444"
+

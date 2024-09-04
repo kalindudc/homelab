@@ -118,3 +118,5 @@ roles/*/meta/*.yml~
 # Local configuration files
 local_settings.yml
 config_local.yml
+
+acme.json

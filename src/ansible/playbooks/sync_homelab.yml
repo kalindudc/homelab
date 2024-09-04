@@ -16,7 +16,7 @@
         dest: "{{ remote_dest }}"
         mode: push
         recursive: yes
-        delete: yes
+        delete: no
         rsync_opts:
           - "--ignore-times"
       register: sync_result
