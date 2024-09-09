@@ -28,15 +28,15 @@ http:
     mc-files-service:
       loadBalancer:
         servers:
-          - url: "http://collie.lab.home.arpa:8080"
+          - url: "http://games1.lab.home.arpa:8080"
 
     game-server-panel-service:
       loadBalancer:
         servers:
-          - url: "http://collie.lab.home.arpa:23335"
+          - url: "http://games1.lab.home.arpa:23335"
 
     game-server-daemon-service:
       loadBalancer:
         servers:
-          - url: "http://collie.lab.home.arpa:24444"
+          - url: "http://games1.lab.home.arpa:24444"
 

@@ -23,5 +23,8 @@
       debug:
         msg: "Rsync installation result: {{ install_result }}"
 
+- name: Upload SSH keys to local servers
+  import_playbook: upload_ssh_key.yml
+
 - name: Synchronize homelab/ to local servers blah
   import_playbook: sync_homelab.yml

@@ -14,4 +14,16 @@ sudo systemctl enable docker
 
 # Install Docker Compose
 echo "Installing Docker Compose..."
-sudo apt-get install -y docker-compose
+sudo apt install -y docker-compose
+
+DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+mkdir -p $DOCKER_CONFIG/cli-plugins
+curl -SL https://github.com/docker/compose/releases/download/v2.12.2/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+
+sudo chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+
+sudo usermod -aG docker $USER
+
+echo "Docker setup complete, rebooting in 5 seconds..."
+sleep 5
+sudo reboot

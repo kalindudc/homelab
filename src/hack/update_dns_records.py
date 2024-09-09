@@ -28,7 +28,7 @@ TECHNITIUM_DELETE_DNS_CACHE_URL = f"http://{TECHNITIUM_DNS_IP}:{TECHNITUM_DNS_PO
 DEFAULT_ZONE = "home.arpa"
 LAB_ZONE = "lab.home.arpa"
 
-LAB_HOSTNAMES = ["collie", "terrier", "retriever", "shepherd"]
+LAB_HOSTNAMES = ["collie", "terrier", "retriever", "shepherd", "games1"]
 
 def main():
   if not os.path.isfile(SECRETS_FILE_PATH):
@@ -169,7 +169,7 @@ def get_omada_devices(logger, omada_id, access_token, token_expiry):
     devices = result["data"]
 
     for device in devices:
-      if "name" not in device and "ip" not in device:
+      if "name" not in device or "ip" not in device:
         continue
 
       hostname = device["name"]
