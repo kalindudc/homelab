@@ -1,26 +1,43 @@
 ---
-- name: Upload SSH public key
+- name: Upload SSH public key to remote servers
   hosts: servers
-  become: yes
   vars_files:
     - vault.yml
   pre_tasks:
     - include_vars:
         file: vault.yml
+  vars:
+     local_ssh_key: "{{ lookup('file', \"{{ lookup('ansible.builtin.env', 'HOME') }}/.ssh/id_rsa.pub\") }}"
   tasks:
     - name: Ensure .ssh directory exists
       file:
-        path: /home/{{ ansible_user }}/.ssh
+        path: "{{ ansible_env.HOME }}/.ssh"
         state: directory
         mode: '0700'
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
 
+    - name: Check if SSH public key is already in authorized_keys
+      shell: 'grep -Fxq "{{ local_ssh_key }}" {{ ansible_env.HOME }}/.ssh/authorized_keys'
+      register: key_present
+      no_log: true
+      ignore_errors: true
+
     - name: Upload SSH public key
       copy:
         src: "{{ lookup('ansible.builtin.env', 'HOME') }}/.ssh/id_rsa.pub"
-        dest: /home/{{ ansible_user }}/.ssh/authorized_keys
+        dest: "{{ ansible_env.HOME }}/.ssh/authorized_keys"
         mode: '0600'
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
-        backup: yes
+      when: key_present.rc != 0
+
+    - name: Set permissions on authorized_keys
+      file:
+        path: "{{ ansible_env.HOME }}/.ssh/authorized_keys"
+        mode: '0600'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+      when: key_present.rc != 0
+
+
