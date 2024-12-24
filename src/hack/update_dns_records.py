@@ -30,6 +30,8 @@ LAB_ZONE = "lab.home.arpa"
 
 LAB_HOSTNAMES = ["collie", "terrier", "retriever", "shepherd", "games1"]
 
+CUSTOM_DNS_FILE = os.path.join(os.path.dirname(__file__), '../../config/custom_dns.json')
+
 def main():
   if not os.path.isfile(SECRETS_FILE_PATH):
     raise FileNotFoundError(f"Secrets file not found at {SECRETS_FILE_PATH}")
@@ -41,7 +43,14 @@ def main():
   client_secret = secrets["omada_client_secret"]
   technitium_token = secrets["technitium_dns_access_token"]
 
+  custom_dns = {}
+  if os.path.isfile(CUSTOM_DNS_FILE):
+
+    with open(CUSTOM_DNS_FILE, "r") as f:
+      custom_dns = json.load(f)
+
   logger = setup_logger()
+  logger.info("Starting DNS records update process.")
 
   omada_access_token, omada_token_expiry = get_access_token(logger, omada_id, client_id, client_secret)
   if omada_access_token is None:
@@ -55,8 +64,9 @@ def main():
 
   logger.info(f"Omada devices acquired successfully. Found {len(omada_devices)} devices.")
 
-  if update_dns_records(logger, technitium_token, omada_devices):
-    logger.error("Failed to update DNS records.")
+  err = update_dns_records(logger, technitium_token, omada_devices, custom_dns)
+  if err:
+    logger.error(f"Failed to update DNS records. Err: {err}")
     return
   logger.info("DNS records updated successfully.")
 
@@ -173,9 +183,9 @@ def get_omada_devices(logger, omada_id, access_token, token_expiry):
         continue
 
       hostname = device["name"]
-      ip_address = device["ip"]
-      if hostname and ip_address:
-        device_info[hostname.lower().replace("_", "-").replace(" ", "-").replace(".", "-")] = ip_address
+      record_value = device["ip"]
+      if hostname and record_value:
+        device_info[hostname.lower().replace("_", "-").replace(" ", "-").replace(".", "-")] = record_value
 
     if devices_count >= total_devices:
       break
@@ -184,34 +194,71 @@ def get_omada_devices(logger, omada_id, access_token, token_expiry):
 
   return device_info
 
-def update_dns_records(logger, technitium_token, omada_devices):
+def update_dns_records(logger, technitium_token, omada_devices, custom_dns):
   unsuccessful_records = []
-  for hostname, ip_address in omada_devices.items():
+  for hostname, record_value in omada_devices.items():
     domain = f"{hostname}.{DEFAULT_ZONE}"
     if hostname in LAB_HOSTNAMES:
       domain = f"{hostname}.{LAB_ZONE}"
 
-    logger.info(f"Gathering DNS records for {hostname} ({ip_address})")
+    logger.info(f"Gathering DNS records for {hostname} ({record_value})")
     dns_records = get_dns_record(logger, technitium_token, domain)
 
     if len(dns_records) == 0:
-      logger.info(f"No DNS records found for {hostname} ({ip_address}), so adding one.")
-      if not add_dns_record(logger, technitium_token, domain, ip_address):
-        unsuccessful_records.append(f"{hostname} ({ip_address})")
+      logger.info(f"No DNS records found for {hostname} ({record_value}), so adding one.")
+      if not add_dns_record(logger, technitium_token, domain, record_value):
+        unsuccessful_records.append(f"{hostname} ({record_value})")
     elif len(dns_records) == 1:
-      logger.info(f"DNS record found for {hostname} ({ip_address}), so updating it with new IP address.")
-      current_ip_address = dns_records[0]["rData"]["ipAddress"]
-      if current_ip_address != ip_address and not update_dns_record(logger, technitium_token, domain, current_ip_address, ip_address):
-        unsuccessful_records.append(f"{hostname} ({ip_address})")
+      logger.info(f"DNS record found for {hostname} ({record_value}), so updating it with new IP address.")
+      current_record_value = get_current_value_from_dns_records(dns_records[0])
+      if current_record_value != record_value and not update_dns_record(logger, technitium_token, domain, current_record_value, record_value):
+        unsuccessful_records.append(f"{hostname} ({record_value})")
     else:
-      logger.info(f"Multiple DNS records found for {hostname} ({ip_address}), so deleting all and adding new one.")
+      logger.info(f"Multiple DNS records found for {hostname} ({record_value}), so deleting all and adding new one.")
       for dns_record in dns_records:
-        delete_dns_record(logger, technitium_token, domain, dns_record["rData"]["ipAddress"])
+        delete_dns_record(logger, technitium_token, domain, get_current_value_from_dns_records(dns_record))
 
-      if not add_dns_record(logger, technitium_token, domain, ip_address):
-        unsuccessful_records.append(f"{hostname} ({ip_address})")
+      if not add_dns_record(logger, technitium_token, domain, record_value):
+        unsuccessful_records.append(f"{hostname} ({record_value})")
 
+  logger.info("Device DNS records updated successfully.")
+  logger.info("...")
+
+  # Add custom DNS records
+  logger.info(f"Adding {len(custom_dns)} custom DNS records.")
+  for record in custom_dns:
+    fqdn = record["fqdn"]
+    record_type = record["type"]
+    value = record["value"]
+
+    existing_record = get_dns_record(logger, technitium_token, fqdn)
+    if len(existing_record) == 0:
+      logger.info(f"No DNS records found for {fqdn}, so adding one.")
+      if not add_dns_record(logger, technitium_token, fqdn, value, record_type):
+        unsuccessful_records.append(f"{fqdn} ({value})")
+    elif len(existing_record) == 1:
+      logger.info(f"DNS record found for {fqdn}, so updating it with new value.")
+
+      current_value = get_current_value_from_dns_records(existing_record[0], record_type)
+      if current_value != value and not update_dns_record(logger, technitium_token, fqdn, current_value, value, record_type):
+        unsuccessful_records.append(f"{fqdn} ({value})")
+    else:
+      logger.info(f"Multiple DNS records found for {fqdn}, so deleting all and adding new one.")
+      for dns_record in existing_record:
+        record_value = get_current_value_from_dns_records(dns_record, record_type)
+        delete_dns_record(logger, technitium_token, fqdn, record_value, record_type)
+
+      if not add_dns_record(logger, technitium_token, fqdn, value, record_type):
+        unsuccessful_records.append(f"{fqdn} ({value})")
+
+  logger.info("Custom DNS records added successfully.")
   return "Failed to update records: " + ", ".join(unsuccessful_records) if unsuccessful_records else None
+
+def get_current_value_from_dns_records(dns_record, record_type="A"):
+  if record_type == "CNAME":
+    return dns_record["rData"]["cname"]
+
+  return dns_record["rData"]["ipAddress"]
 
 def get_dns_record(logger, technitium_token, domain):
   url = f"{TECHNITIUM_GET_RECORDS_URL}?token={technitium_token}&domain={domain}"
@@ -223,8 +270,13 @@ def get_dns_record(logger, technitium_token, domain):
 
   return response_data.get("response").get("records")
 
-def update_dns_record(logger, technitium_token, domain, ip_address, new_ip_address):
-  url = f"{TECHNITIUM_UPDATE_RECORDS_URL}?token={technitium_token}&domain={domain}&type=A&ipAddress={ip_address}&newIpAddress={new_ip_address}"
+def update_dns_record(logger, technitium_token, domain, record_value, new_record_value, type="A"):
+  url = f"{TECHNITIUM_UPDATE_RECORDS_URL}?token={technitium_token}&domain={domain}"
+  if type == "CNAME":
+    url += f"&cname={new_record_value}"
+  else:
+    url += f"&ipAddress={record_value}&newIpAddress={new_record_value}"
+
   parsed_url = urllib.parse.urlparse(url)
   conn = http.client.HTTPConnection(parsed_url.hostname, parsed_url.port)
   conn.request("GET", parsed_url.path + "?" + parsed_url.query)
@@ -233,8 +285,14 @@ def update_dns_record(logger, technitium_token, domain, ip_address, new_ip_addre
 
   return response_data.get("status") == "ok"
 
-def add_dns_record(logger, technitium_token, domain, ip_address):
-  url = f"{TECHNITIUM_ADD_RECORDS_URL}?token={technitium_token}&domain={domain}&type=A&ipAddress={ip_address}"
+def add_dns_record(logger, technitium_token, domain, record_value, type="A"):
+  url = f"{TECHNITIUM_ADD_RECORDS_URL}?token={technitium_token}&domain={domain}&type={type}"
+  if type == "CNAME":
+    url += f"&cname={record_value}"
+  else:
+    url += f"&ipAddress={record_value}"
+
+
   parsed_url = urllib.parse.urlparse(url)
   conn = http.client.HTTPConnection(parsed_url.hostname, parsed_url.port)
   conn.request("GET", parsed_url.path + "?" + parsed_url.query)
@@ -243,8 +301,11 @@ def add_dns_record(logger, technitium_token, domain, ip_address):
 
   return response_data.get("status") == "ok"
 
-def delete_dns_record(logger, technitium_token, domain, ip_address):
-  url = f"{TECHNITIUM_DELETE_RECORDS_URL}?token={technitium_token}&domain={domain}&type=A&ipAddress={ip_address}"
+def delete_dns_record(logger, technitium_token, domain, record_value, type="A"):
+  url = f"{TECHNITIUM_DELETE_RECORDS_URL}?token={technitium_token}&domain={domain}&type={type}"
+  if type == "A":
+    url += f"&ipAddress={record_value}"
+
   parsed_url = urllib.parse.urlparse(url)
   conn = http.client.HTTPConnection(parsed_url.hostname, parsed_url.port)
   conn.request("GET", parsed_url.path + "?" + parsed_url.query)

@@ -1,0 +1,12 @@
+[
+  {
+    "fqdn": "jfin99.svc.home.arpa.",
+    "type": "CNAME",
+    "value": "dns.home.arpa"
+  },
+  {
+    "fqdn": "dns.svc.home.arpa.",
+    "type": "CNAME",
+    "value": "dns.home.arpa"
+  }
+]

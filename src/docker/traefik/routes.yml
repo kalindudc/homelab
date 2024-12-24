@@ -24,7 +24,33 @@ http:
       tls:
         certResolver: myresolver
 
+    jfin99:
+      entryPoints:
+        - websecure
+      rule: "Host(`jfin99.svc.home.arpa`)"
+      service: jfin99-service
+      tls:
+        certResolver: myresolver
+
+    dns:
+      entryPoints:
+        - websecure
+      rule: "Host(`dns.svc.home.arpa`)"
+      service: dns-service
+      tls:
+        certResolver: myresolver
+
   services:
+    dns-service:
+      loadBalancer:
+        servers:
+          - url: "http://dns.home.arpa:5380/"
+
+    jfin99-service:
+      loadBalancer:
+        servers:
+          - url: "http://newfie.home.arpa:8096/"
+
     mc-files-service:
       loadBalancer:
         servers:

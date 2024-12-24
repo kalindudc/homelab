@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    ports:
+      - "8096:8096"
+    volumes:
+      - /home/jellyfin/mnt:/media
+      - /usr/share/jellyfin:/usr/share/jellyfin
+      - ./jellyfin.sh:/home/jellyfin/jellyfin.sh:ro
+    environment:
+      - PUID=109
+      - PGID=112
+    user: "109:112"
+    entrypoint: ["/bin/bash", "/home/jellyfin/jellyfin.sh"]

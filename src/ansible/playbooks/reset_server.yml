@@ -1,0 +1,107 @@
+---
+- name: Synchronize hass config to hass servers
+  hosts: servers
+  vars_files:
+    - vault.yml
+  pre_tasks:
+    - include_vars:
+        file: vault.yml
+  gather_facts: yes
+  vars_prompt:
+    - name: continue_prompt
+      prompt: This playbook with reset any servers, do you want to continue? (Y/n)
+      private: false
+  become: yes
+  tasks:
+    - fail:
+        msg: "User aborted the playbook"
+      when: continue_prompt | lower != "y"
+
+    - name: Backup /etc/passwd file
+      copy:
+        src: /etc/passwd
+        dest: /etc/passwd.bak
+        mode: '0644'
+
+    - name: Backup /etc/group file
+      copy:
+        src: /etc/group
+        dest: /etc/group.bak
+        mode: '0644'
+
+    - name: Autoremove unused dependencies
+      apt:
+        autoremove: yes
+        purge: yes
+
+    - name: Clean the apt cache
+      apt:
+        autoclean: yes
+
+    - name: Clean up log files
+      file:
+        path: /var/log
+        recurse: yes
+
+    - name: Clean up temporary files
+      file:
+        path: "{{ item }}"
+        recurse: yes
+      with_items:
+        - /tmp
+        - /var/tmp
+
+    - name: Update apt cache and upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Reboot after package upgrade
+      reboot:
+        msg: "Rebooting after system upgrade"
+
+    - name: Wait for the server to come back online
+      wait_for_connection:
+        timeout: 600
+
+    - name: Upgrade to the latest LTS release
+      command: do-release-upgrade -f DistUpgradeViewNonInteractive
+      register: upgrade_result
+      ignore_errors: yes
+
+    - name: Reboot after upgrade
+      reboot:
+        msg: "Rebooting after system upgrade"
+
+    - name: Wait for the server to come back online
+      wait_for_connection:
+        timeout: 600
+
+    - name: Update apt cache again after reboot
+      apt:
+        update_cache: yes
+
+    - name: Install common packages including OpenSSH server
+      apt:
+        name:
+          - vim
+          - curl
+          - git
+          - htop
+          - openssh-server
+        state: present
+
+    - name: Enable and start SSH service
+      systemd:
+        name: ssh
+        enabled: yes
+        state: started
+
+    - name: Ensure UFW allows SSH traffic
+      ufw:
+        rule: allow
+        name: OpenSSH
+
+- name: Upload ssh key to remote servers
+  import_playbook: upload_ssh_key.yml
+
