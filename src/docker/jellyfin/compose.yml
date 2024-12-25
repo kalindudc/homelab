@@ -8,7 +8,9 @@ services:
     ports:
       - "8096:8096"
     volumes:
-      - /home/jellyfin/mnt:/media
+      - type: bind
+        source: /home/jellyfin/mnt
+        target: /media
       - /usr/share/jellyfin:/usr/share/jellyfin
       - ./jellyfin.sh:/home/jellyfin/jellyfin.sh:ro
     environment:
