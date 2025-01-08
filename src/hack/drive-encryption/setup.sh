@@ -137,11 +137,16 @@ rm "$BACKUP_DIR/drive_info_${LUKS_UUID}.txt"
 # Use UUIDs in system configuration files
 echo "$MAPPER_NAME UUID=$LUKS_UUID /root/.luks/keyfile_${LUKS_UUID} luks" >> /etc/crypttab
 
+echo ""
+echo "Showing output of \`id\`"
+id
+
+echo ""
 echo "Find the appropriate UID and GID for the user that should have access to this drive using \`id <user>\`."
 read -p "Enter a the UID of the user that should have access to this drive: " UID
 read -p "Enter a the GID of the user that should have access to this drive: " GID
 
-echo "UUID=$FILESYSTEM_UUID $MOUNT_POINT ext4 defaults,uid=$UID,git=$GID 0 2" >> /etc/fstab
+echo "UUID=$FILESYSTEM_UUID $MOUNT_POINT ext4 defaults,nofail,uid=$UID,git=$GID 0 2" >> /etc/fstab
 
 # Create udev rule using LUKS UUID
 cat > "/etc/udev/rules.d/99-encrypted-drive-${LUKS_UUID}.rules" << EOF

@@ -134,7 +134,16 @@ fi
 
 # Update fstab
 if ! grep -q "UUID=$FILESYSTEM_UUID" /etc/fstab; then
-  echo "UUID=$FILESYSTEM_UUID $MOUNT_POINT ext4 defaults 0 2" >> /etc/fstab
+  echo ""
+  echo "Showing output of \`id\`"
+  id
+
+  echo ""
+  echo "Find the appropriate UID and GID for the user that should have access to this drive using \`id <user>\`."
+  read -p "Enter a the UID of the user that should have access to this drive: " UID
+  read -p "Enter a the GID of the user that should have access to this drive: " GID
+
+  echo "UUID=$FILESYSTEM_UUID $MOUNT_POINT ext4 defaults,nofail,uid=$UID,git=$GID 0 2" >> /etc/fstab
 fi
 
 # Create udev rule
