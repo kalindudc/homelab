@@ -11,6 +11,8 @@ services:
       - type: bind
         source: /home/jellyfin/mnt
         target: /media
+        bind:
+          propagation: rshared
       - /usr/share/jellyfin:/usr/share/jellyfin
       - ./jellyfin.sh:/home/jellyfin/jellyfin.sh:ro
     environment:
