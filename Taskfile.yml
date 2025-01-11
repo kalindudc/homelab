@@ -24,6 +24,12 @@ tasks:
     cmds:
       - scripts/install-base.sh
       - scripts/install.sh
+      - cat src/known_hosts.txt | xargs -I {} ssh-keyscan {} >> ~/.ssh/known_hosts
+
+  sync_known_hosts:
+    desc: Add all servers to known-hosts
+    cmds:
+      - cat src/known_hosts.txt | xargs -I {} ssh-keyscan {} >> ~/.ssh/known_hosts
 
   sync_hass:
     desc: Call sync_hass ansible playbook

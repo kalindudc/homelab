@@ -1,0 +1,11 @@
+---
+- name: Synchronize homelab/ to local servers
+  hosts: servers
+  vars_files:
+    - vault.yml
+  pre_tasks:
+    - include_vars:
+        file: vault.yml
+  tasks:
+    - name: ping
+      ping:
