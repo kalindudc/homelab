@@ -275,7 +275,9 @@ def update_dns_record(logger, technitium_token, domain, record_value, new_record
   if type == "CNAME":
     url += f"&cname={new_record_value}"
   else:
-    url += f"&ipAddress={record_value}&newIpAddress={new_record_value}"
+    url += f"&type=A&ipAddress={record_value}&newIpAddress={new_record_value}"
+
+  print(url)
 
   parsed_url = urllib.parse.urlparse(url)
   conn = http.client.HTTPConnection(parsed_url.hostname, parsed_url.port)

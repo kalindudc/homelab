@@ -40,6 +40,14 @@ http:
       tls:
         certResolver: myresolver
 
+    hass:
+      entryPoints:
+        - websecure
+      rule: "Host(`hass.svc.home.arpa`) || Host(`homeassistant.svc.home.arpa`)"
+      service: hass-service
+      tls:
+        certResolver: myresolver
+
   services:
     dns-service:
       loadBalancer:
@@ -50,6 +58,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://newfie.home.arpa:8096/"
+
+    hass-service:
+      loadBalancer:
+        servers:
+          - url: "http://homeassistant.home.arpa:8123/"
 
     mc-files-service:
       loadBalancer:

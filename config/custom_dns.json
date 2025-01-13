@@ -8,5 +8,15 @@
     "fqdn": "dns.svc.home.arpa.",
     "type": "CNAME",
     "value": "dns.home.arpa"
+  },
+  {
+    "fqdn": "hass.svc.home.arpa.",
+    "type": "CNAME",
+    "value": "dns.home.arpa"
+  },
+  {
+    "fqdn": "homeassistant.svc.home.arpa.",
+    "type": "CNAME",
+    "value": "dns.home.arpa"
   }
 ]
