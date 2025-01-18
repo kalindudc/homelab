@@ -5,6 +5,13 @@
 
 This repository contains the a collection of documentation and the architecture my [homelab](https://www.reddit.com/r/homelab/wiki/introduction/) which includes network architecture as well as IoC and scripts used for automation of hosted services.
 
+## Dependencies
+```
+- python3
+- ruby
+- ejson
+```
+
 ## Lab goals
 
 ### Managed Network (Omada)
