@@ -2,6 +2,7 @@ homeassistant.home.arpa
 homeassistant-bak.home.arpa
 newfie.home.arpa
 dns.home.arpa
+dns2.home.arpa
 games1.lab.home.arpa
 collie.lab.home.arpa
 retriever.lab.home.arpa

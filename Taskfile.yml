@@ -14,23 +14,9 @@ env:
 tasks:
 
   init:
-    desc: Initialize mac workstation dependencies
+    desc: Initialize workstation dependencies
     cmds:
-      - scripts/install-base.sh
-      - scripts/install-mac.sh
-
-  init-linux:
-    desc: Initialize linux workstation dependencies
-    cmds:
-      - scripts/install-base.sh
-      - scripts/install.sh
-      - cat src/known_hosts.txt | xargs -I {} ssh-keyscan {} >> ~/.ssh/known_hosts
-
-  init-nix:
-    desc: Initialize for NixOS
-    cmds:
-      - echo "NixOS cannot be managed from this repo"
-      - echo "See the dependencies section in README.md"
+      - scripts/init.sh
 
   sync_known_hosts:
     desc: Add all servers to known-hosts
