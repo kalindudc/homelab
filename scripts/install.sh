@@ -1,7 +1,7 @@
 #! /bin/bash
 
-sudo apt update
-sudo apt --dist upgrade
+sudo apt update -y
+sudo apt upgrade -y
 
 sudo apt install golang
 sudo apt install terraform
