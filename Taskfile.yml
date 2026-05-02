@@ -37,3 +37,8 @@ tasks:
     desc: View ansible vault
     cmds:
       - ansible-vault view src/ansible/playbooks/vault.yml
+
+  k3s:
+    desc: Kubernetes cluster lifecycle (pass --init, --deploy, --upgrade, --kubeconfig)
+    cmds:
+      - scripts/k8s.sh {{.CLI_ARGS}}

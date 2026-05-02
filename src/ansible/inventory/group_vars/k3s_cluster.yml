@@ -1,0 +1,10 @@
+---
+k3s_version: v1.30.4+k3s1
+token: "{{ vault_k3s_token }}"
+api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
+api_port: 6443
+k3s_server_location: /var/lib/rancher/k3s
+systemd_dir: /etc/systemd/system
+extra_server_args: "--tls-san=collie.lab.home.arpa"
+extra_agent_args: ""
+cluster_context: "pack"
