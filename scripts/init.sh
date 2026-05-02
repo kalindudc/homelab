@@ -17,7 +17,7 @@ prompt_for_yn() {
   local answer
 
   while true; do
-    read -p "$prompt " answer
+    read -rp "$prompt " answer
     answer=${answer:-$default}
 
     case "$answer" in
@@ -33,7 +33,7 @@ setup_ansible_vault() {
   ANSIBLE_VAULT_PASS_FILE="$HOME/.ansible_vault_pass.gpg"
   if [[ ! -f $ANSIBLE_VAULT_PASS_FILE ]]; then
     echo "Creating ansible vault pass file..."
-    read -sp "Enter ansible vault password: " ansible_vault_pass
+    read -rsp "Enter ansible vault password: " ansible_vault_pass
     echo "pass accepted"
 
     temp_pass_file=$(mktemp)
@@ -41,12 +41,52 @@ setup_ansible_vault() {
 
     # prompt to see if the user wants to generate a new gpg key
     if prompt_for_yn "Do you want to generate a new gpg key? (y/n)" "n"; then
-      echo "Generating new gpg key for ansible vault pass..."
-      gpg --full-generate-key
-    fi
-    gpg --list-keys
+      echo "Generating new RSA 4096 gpg key for ansible vault pass..."
 
-    read -sp "Enter the key for the new gpg key: " gpg_key
+      local name="${NAME:-}"
+      local email="${EMAIL:-}"
+
+      if [[ -z "$name" ]]; then
+        read -rp "Enter your name: " name
+      fi
+      if [[ -z "$email" ]]; then
+        read -rp "Enter your email: " email
+      fi
+
+      local gen_key_script
+      gen_key_script=$(mktemp)
+      cat > "$gen_key_script" <<EOF
+%echo Generating key
+Key-Type: RSA
+Key-Length: 4096
+Subkey-Type: RSA
+Subkey-Length: 4096
+Name-Real: $name
+Name-Email: $email
+Expire-Date: 0
+%no-protection
+%commit
+%echo done
+EOF
+      gpg --batch --gen-key "$gen_key_script"
+      rm "$gen_key_script"
+
+      # Discover the generated key fingerprint
+      gpg_key=$(gpg --list-keys --with-colons "$email" | awk -F: '/^fpr:/ {print $10; exit}')
+
+      if [[ -z "$gpg_key" ]]; then
+        echo "Failed to auto-discover the generated GPG key."
+        gpg --list-keys
+        read -rsp "Enter the key ID or fingerprint manually: " gpg_key
+        echo
+      else
+        echo "Auto-discovered GPG key: $gpg_key"
+      fi
+    else
+      gpg --list-keys
+      read -rsp "Enter the key ID or fingerprint to use: " gpg_key
+      echo
+    fi
     gpg --encrypt --recipient "$gpg_key" --output "$ANSIBLE_VAULT_PASS_FILE" "$temp_pass_file"
     rm "$temp_pass_file"
     echo "Ansible vault pass file created."
@@ -71,11 +111,10 @@ while [[ "$#" -gt 0 ]]; do
       usage
       ;;
   esac
-  shift
 done
 
 
-ALLOWED_LINUX_DISTROS=("ubuntu" "debian")
+ALLOWED_LINUX_DISTROS=("ubuntu" "debian" "arch" "cachyos" "manjaro")
 
 is_mac=false
 if [[ "$(uname)" == "Darwin" ]]; then
@@ -85,12 +124,13 @@ fi
 echo "Starting installation..."
 if [[ $is_mac == true ]]; then
   echo "Installing packages for macOS..."
-  $SCRIPT_DIR/install-mac.sh
+  "$SCRIPT_DIR"/install-mac.sh
 else
   echo "Installing packages for Linux..."
 
   # Check for NixOS
   if [[ -f /etc/os-release ]]; then
+    # shellcheck source=/dev/null
     . /etc/os-release
     if [[ "$ID" == "nixos" ]]; then
       echo "Detected NixOS"
@@ -99,14 +139,26 @@ else
       exit 1
     fi
 
-    # check if the OS is in the allowed list
-    if [[ ! " ${ALLOWED_LINUX_DISTROS[@]} " =~ " ${ID} " ]]; then
+    # check if the OS is in the allowed list (also check ID_LIKE for derivatives)
+    is_allowed=false
+    for distro in "${ALLOWED_LINUX_DISTROS[@]}"; do
+      if [[ "$distro" == "$ID" ]]; then
+        is_allowed=true
+        break
+      fi
+    done
+    if [[ "$is_allowed" != true && -n "${ID_LIKE:-}" && "${ID_LIKE}" =~ arch ]]; then
+      is_allowed=true
+      ID="arch"
+    fi
+
+    if [[ "$is_allowed" != true ]]; then
       echo "Unsupported Linux distribution: $ID"
       echo "See dependencies section in README.md and install manually."
       exit 1
     fi
 
-    $SCRIPT_DIR/install.sh $ID
+    "$SCRIPT_DIR"/install.sh "$ID"
   else
     echo "No /etc/os-release file found. Cannot determine OS"
     echo "See dependencies section in README.md and install manually"
@@ -114,7 +166,7 @@ else
   fi
 fi
 
-$SCRIPT_DIR/install-base.sh
+"$SCRIPT_DIR"/install-base.sh
 echo "Package installation complete."
 echo " "
 
@@ -127,7 +179,7 @@ cat "$HOMELAB_DIR/src/known_hosts.txt" | xargs -I {} ssh-keyscan {} > "$temp_hos
 while IFS= read -r line; do
   host=$(echo "$line" | cut -d' ' -f1)
   if ! ssh-keygen -F "$host" > /dev/null; then
-    echo "$line" >> $HOME/.ssh/known_hosts
+    echo "$line" >> "$HOME"/.ssh/known_hosts
     echo "Added $host"
   fi
 done < "$temp_hosts"
