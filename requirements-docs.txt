@@ -3,7 +3,7 @@ mkdocs-material
 
 # Python Markdown Extensions
 pygments>=2.14
-pymdown-extensions>=9.9
+pymdown-extensions>=10.21.3
 
 # MkDocs Plugins
 mkdocs-git-revision-date-plugin
