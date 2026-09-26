@@ -42,3 +42,18 @@ tasks:
     desc: Kubernetes cluster lifecycle (pass --init, --deploy, --upgrade, --kubeconfig)
     cmds:
       - scripts/k8s.sh {{.CLI_ARGS}}
+
+  jellyfin_deploy:
+    desc: Deploy Jellyfin to the k3s cluster (namespace media)
+    cmds:
+      - kubectl apply -k {{.ROOT_DIR}}/src/kubernetes/jellyfin/
+
+  jellyfin_status:
+    desc: Show Jellyfin pod and service status
+    cmds:
+      - kubectl -n media get pods,svc -l app=jellyfin -o wide
+
+  jellyfin_remove:
+    desc: Remove Jellyfin from the cluster (data on the node is kept)
+    cmds:
+      - kubectl delete -k {{.ROOT_DIR}}/src/kubernetes/jellyfin/

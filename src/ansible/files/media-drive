@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+# media-drive — safely unmount/remount the Jellyfin media drive (mv_cat_1, exfat)
+#
+# Workflow for adding new media:
+#   1. sudo media-drive unmount     # stops jellyfin pod, flushes, detaches; safe to unplug
+#   2. plug drive into another machine, copy files
+#   3. plug back into retriever
+#   4. sudo media-drive mount       # waits for the device, mounts via fstab, starts jellyfin
+#
+# Usage: media-drive {status|mount|unmount|remount}
+#
+# The jellyfin pod holds a bind mount on this filesystem, so the pod MUST be
+# stopped before unmounting — otherwise the container keeps the fs alive and
+# unplugging risks corruption. That lifecycle is handled here.
+set -euo pipefail
+
+MOUNT_POINT="/opt/jellyfin/media"
+DEVICE_UUID="6574-A1F6"   # /dev/sdb2, label mv_cat_1
+NAMESPACE="media"
+DEPLOY="deploy/jellyfin"
+export KUBECONFIG=/root/.kube/config
+KCTL="k3s kubectl"
+
+require_root() {
+    if [[ $EUID -ne 0 ]]; then
+        echo "run with sudo: sudo media-drive $1"
+        exit 1
+    fi
+}
+
+is_mounted() { findmnt --mountpoint "$MOUNT_POINT" >/dev/null 2>&1; }
+
+pod_count() { $KCTL -n "$NAMESPACE" get pod -l app=jellyfin --no-headers 2>/dev/null | wc -l; }
+
+stop_jellyfin() {
+    echo "stopping jellyfin pod..."
+    $KCTL -n "$NAMESPACE" scale "$DEPLOY" --replicas=0
+    if [[ $(pod_count) -gt 0 ]]; then
+        $KCTL -n "$NAMESPACE" wait --for=delete pod -l app=jellyfin --timeout=120s
+    fi
+    echo "jellyfin stopped"
+}
+
+start_jellyfin() {
+    echo "starting jellyfin pod..."
+    $KCTL -n "$NAMESPACE" scale "$DEPLOY" --replicas=1
+    $KCTL -n "$NAMESPACE" rollout status "$DEPLOY" --timeout=180s
+    echo "jellyfin is back up (http://10.0.0.200:8096)"
+}
+
+do_status() {
+    if is_mounted; then
+        echo "MOUNTED: $(findmnt -no SOURCE "$MOUNT_POINT") at $MOUNT_POINT"
+        df -h "$MOUNT_POINT" | tail -1
+    else
+        echo "NOT MOUNTED ($MOUNT_POINT)"
+    fi
+    $KCTL -n "$NAMESPACE" get pod -l app=jellyfin --no-headers 2>/dev/null || echo "jellyfin pod: none running"
+}
+
+do_unmount() {
+    require_root unmount
+    if ! is_mounted; then
+        echo "already unmounted"
+        return 0
+    fi
+    # non-pod processes with open files (pod handles are released by stop_jellyfin)
+    local pids
+    pids=$(fuser -m "$MOUNT_POINT" 2>/dev/null || true)
+    if [[ -n "${pids// /}" ]]; then
+        echo "NOTE: processes have files open on $MOUNT_POINT:"
+        fuser -vm "$MOUNT_POINT" 2>&1 || true
+    fi
+    stop_jellyfin
+    echo "flushing pending writes (sync)..."
+    sync
+    local i
+    for i in 1 2 3; do
+        if umount "$MOUNT_POINT"; then
+            break
+        fi
+        echo "target busy, retrying ($i/3)..."
+        sleep 2
+    done
+    if is_mounted; then
+        echo "FAILED: still mounted — check processes above"
+        start_jellyfin   # bring service back since we could not detach
+        return 1
+    fi
+    echo "unmounted — SAFE TO UNPLUG the drive"
+}
+
+do_mount() {
+    require_root mount
+    if is_mounted; then
+        echo "already mounted"
+        do_status
+        return 0
+    fi
+    local i
+    for i in $(seq 1 15); do
+        [[ -b "/dev/disk/by-uuid/$DEVICE_UUID" ]] && break
+        echo "waiting for drive (uuid $DEVICE_UUID)... ($i/15)"
+        sleep 2
+    done
+    if [[ ! -b "/dev/disk/by-uuid/$DEVICE_UUID" ]]; then
+        echo "drive not detected — is it plugged in?"
+        return 1
+    fi
+    mount "$MOUNT_POINT"   # source + options come from the fstab entry
+    sync
+    echo "mounted:"
+    ls "$MOUNT_POINT"
+    start_jellyfin
+}
+
+case "${1:-}" in
+    status)  do_status ;;
+    mount)   do_mount ;;
+    unmount) do_unmount ;;
+    remount) do_unmount && do_mount ;;
+    *)
+        echo "usage: media-drive {status|mount|unmount|remount}"
+        exit 2
+        ;;
+esac

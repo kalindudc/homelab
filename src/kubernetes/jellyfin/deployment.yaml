@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+  namespace: media
+  labels:
+    app: jellyfin
+spec:
+  replicas: 1
+  # Single replica with node-local storage: never run two pods against the same dirs.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: jellyfin
+  template:
+    metadata:
+      labels:
+        app: jellyfin
+    spec:
+      # Pinned to retriever until NAS/shared storage exists; all data lives in
+      # hostPath /opt/jellyfin on that node.
+      nodeSelector:
+        kubernetes.io/hostname: retriever
+      securityContext:
+        supplementalGroups:
+          - 109 # render group on the k3s nodes (host /dev/dri/renderD128)
+      containers:
+        - name: jellyfin
+          image: jellyfin/jellyfin:10.11.11
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8096
+          env:
+            # Change to your local timezone; affects scheduled library tasks.
+            - name: TZ
+              value: America/Toronto
+          securityContext:
+            # Kubernetes has no docker --device equivalent; privileged is required
+            # for the container to access the hostPath-mounted /dev/dri GPU devices.
+            privileged: true
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: cache
+              mountPath: /cache
+            - name: media
+              mountPath: /media
+            - name: dri
+              mountPath: /dev/dri
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes:
+        - name: config
+          hostPath:
+            path: /opt/jellyfin/config
+            type: DirectoryOrCreate
+        - name: cache
+          hostPath:
+            path: /opt/jellyfin/cache
+            type: DirectoryOrCreate
+        - name: media
+          hostPath:
+            path: /opt/jellyfin/media
+            type: DirectoryOrCreate
+        - name: dri
+          hostPath:
+            path: /dev/dri
+            type: Directory
